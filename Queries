@@ -1,0 +1,148 @@
+1. CREATE DATABASE
+
+use smartProjectDB
+
+2. CREATE COLLECTIONS WITH VALIDATION
+
+// Resume Collection
+db.createCollection("resumes", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["name", "email", "skills"],
+      properties: {
+        name: { bsonType: "string" },
+        email: {
+          bsonType: "string",
+          pattern: "^.+@.+\\..+$"
+        },
+        skills: {
+          bsonType: "array",
+          items: { bsonType: "string" }
+        },
+        experience: {
+          bsonType: "int",
+          minimum: 0
+        }
+      }
+    }
+  }
+})
+
+// Stock Collection
+db.createCollection("stocks", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["company", "price", "date"],
+      properties: {
+        company: { bsonType: "string" },
+        price: {
+          bsonType: "double",
+          minimum: 0
+        },
+        date: { bsonType: "date" },
+        trend: {
+          enum: ["UP", "DOWN", "STABLE"]
+        }
+      }
+    }
+  }
+})
+
+ 3. INSERTION
+
+// Insert One Resume
+db.resumes.insertOne({
+  name: "Taranya",
+  email: "taranya@gmail.com",
+  skills: ["Java", "MongoDB", "Python"],
+  experience: 2
+})
+
+// Insert Many Resumes
+db.resumes.insertMany([
+  {
+    name: "Anu",
+    email: "anu@gmail.com",
+    skills: ["C++", "DBMS"],
+    experience: 1
+  },
+  {
+    name: "Ravi",
+    email: "ravi@gmail.com",
+    skills: ["JavaScript", "Node.js"],
+    experience: 3
+  }
+])
+
+// Insert Stock Data
+db.stocks.insertMany([
+  {
+    company: "TCS",
+    price: 3500.50,
+    date: new Date(),
+    trend: "UP"
+  },
+  {
+    company: "Infosys",
+    price: 1450.75,
+    date: new Date(),
+    trend: "DOWN"
+  }
+])
+
+4. READ (VERIFICATION STEP 1)
+
+// View all resumes
+db.resumes.find().pretty()
+
+// View all stocks
+db.stocks.find().pretty()
+
+5. UPDATE OPERATIONS
+
+// Update resume experience
+db.resumes.updateOne(
+  { name: "Taranya" },
+  { $set: { experience: 4 } }
+)
+
+// Update stock trend
+db.stocks.updateOne(
+  { company: "TCS" },
+  { $set: { trend: "STABLE" } }
+)
+
+6. VERIFY UPDATE (VERIFICATION STEP 2)
+
+db.resumes.find({ name: "Taranya" }).pretty()
+db.stocks.find({ company: "TCS" }).pretty()
+
+7. DELETE OPERATIONS
+
+// Delete one resume
+db.resumes.deleteOne({ name: "Anu" })
+
+// Delete one stock
+db.stocks.deleteOne({ company: "Infosys" })
+
+8. VERIFY DELETE (VERIFICATION STEP 3)
+
+db.resumes.find().pretty()
+db.stocks.find().pretty()
+
+// Experienced candidates (>2 years)
+db.resumes.find({ experience: { $gt: 2 } })
+
+// Sort stocks by price
+db.stocks.find().sort({ price: -1 })
+
+10. VALIDATION TEST 
+
+// This should FAIL due to wrong format
+db.resumes.insertOne({
+  name: "Test User",
+  email: "invalidemail",
+  skills: "Java"
+})
